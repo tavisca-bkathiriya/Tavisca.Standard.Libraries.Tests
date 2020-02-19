@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Desktop\GitHub Repo\net-standard-common-libraries\src\Tasks\src\Tavisca.Libraries.Tasks\Tavisca.Libraries.Tasks.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,36 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v2.1",
+    "signature": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v2.1": {
+      "Tavisca.Tasks.Core.Test/1.0.0": {
+        "dependencies": {
+          "Tavisca.Libraries.Tasks": "0.9.0"
+        },
+        "runtime": {
+          "Tavisca.Tasks.Core.Test.dll": {}
+        }
+      },
+      "Tavisca.Libraries.Tasks/0.9.0": {
+        "runtime": {
+          "Tavisca.Libraries.Tasks.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Tavisca.Tasks.Core.Test/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Tavisca.Libraries.Tasks/0.9.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

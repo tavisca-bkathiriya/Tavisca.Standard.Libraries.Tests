@@ -1,0 +1,14 @@
+C:\Users\bmohan\source\repos\Tavisca.Tasks.Core.Test\Tavisca.Tasks.Core.Test\obj\Debug\netcoreapp2.2\Tavisca.Tasks.Core.Test.csprojAssemblyReference.cache
+C:\Users\bmohan\source\repos\Tavisca.Tasks.Core.Test\Tavisca.Tasks.Core.Test\obj\Debug\netcoreapp2.2\Tavisca.Tasks.Core.Test.csproj.CoreCompileInputs.cache
+C:\Users\bmohan\source\repos\Tavisca.Tasks.Core.Test\Tavisca.Tasks.Core.Test\obj\Debug\netcoreapp2.2\Tavisca.Tasks.Core.Test.AssemblyInfoInputs.cache
+C:\Users\bmohan\source\repos\Tavisca.Tasks.Core.Test\Tavisca.Tasks.Core.Test\obj\Debug\netcoreapp2.2\Tavisca.Tasks.Core.Test.AssemblyInfo.cs
+C:\Users\bmohan\source\repos\Tavisca.Tasks.Core.Test\Tavisca.Tasks.Core.Test\bin\Debug\netcoreapp2.2\Tavisca.Tasks.Core.Test.deps.json
+C:\Users\bmohan\source\repos\Tavisca.Tasks.Core.Test\Tavisca.Tasks.Core.Test\bin\Debug\netcoreapp2.2\Tavisca.Tasks.Core.Test.runtimeconfig.json
+C:\Users\bmohan\source\repos\Tavisca.Tasks.Core.Test\Tavisca.Tasks.Core.Test\bin\Debug\netcoreapp2.2\Tavisca.Tasks.Core.Test.runtimeconfig.dev.json
+C:\Users\bmohan\source\repos\Tavisca.Tasks.Core.Test\Tavisca.Tasks.Core.Test\bin\Debug\netcoreapp2.2\Tavisca.Tasks.Core.Test.dll
+C:\Users\bmohan\source\repos\Tavisca.Tasks.Core.Test\Tavisca.Tasks.Core.Test\bin\Debug\netcoreapp2.2\Tavisca.Tasks.Core.Test.pdb
+C:\Users\bmohan\source\repos\Tavisca.Tasks.Core.Test\Tavisca.Tasks.Core.Test\bin\Debug\netcoreapp2.2\Tavisca.Libraries.Tasks.dll
+C:\Users\bmohan\source\repos\Tavisca.Tasks.Core.Test\Tavisca.Tasks.Core.Test\bin\Debug\netcoreapp2.2\Tavisca.Libraries.Tasks.pdb
+C:\Users\bmohan\source\repos\Tavisca.Tasks.Core.Test\Tavisca.Tasks.Core.Test\obj\Debug\netcoreapp2.2\Tavisca.Tasks.Core.Test.csproj.CopyComplete
+C:\Users\bmohan\source\repos\Tavisca.Tasks.Core.Test\Tavisca.Tasks.Core.Test\obj\Debug\netcoreapp2.2\Tavisca.Tasks.Core.Test.dll
+C:\Users\bmohan\source\repos\Tavisca.Tasks.Core.Test\Tavisca.Tasks.Core.Test\obj\Debug\netcoreapp2.2\Tavisca.Tasks.Core.Test.pdb
