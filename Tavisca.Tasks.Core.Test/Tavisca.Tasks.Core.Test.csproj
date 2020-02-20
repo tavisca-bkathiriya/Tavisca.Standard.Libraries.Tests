@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\Desktop\GitHub Repo\net-standard-common-libraries\src\Tasks\src\Tavisca.Libraries.Tasks\Tavisca.Libraries.Tasks.csproj" />
+    <PackageReference Include="Tavisca.Libraries.Tasks" Version="0.9.0" />
   </ItemGroup>
 
 </Project>

@@ -10,35 +10,50 @@ namespace Tavisca.Libraries.LockManagement.Tests
 {
     public class AsyncReadWriteLockTest
     {
-
         [Fact]
         public void AsyncReadWriteLock_Test_For_Multiple_Read_Lock_Aquired_At_Same_Time()
         {
-            var numberList = new List<int>();
-            var waitHandle = new CountdownEvent(3);
-            var asyncReadWriteLock = new AsyncReadWriteLock();
-            //Task.Factory.StartNew(() => getReadLockAction(numberList, waitHandle, asyncReadWriteLock));
-            Parallel.Invoke(async () => await getReadLockAction(numberList, waitHandle, asyncReadWriteLock), 
-                async () => await getReadLockAction(numberList, waitHandle, asyncReadWriteLock), 
-                async () => await getReadLockAction(numberList, waitHandle, asyncReadWriteLock));
+            AsyncReadWriteLock asyncLock = new AsyncReadWriteLock();
+            CountdownEvent waitHandle = new CountdownEvent(3);
+            Func<Task<DateTime>> asyncReadLockAction = async () =>
+            {
+                using (await asyncLock.ReadLockAsync())
+                {
+                    Thread.Sleep(2000);
+                    waitHandle.Signal();
+                    return DateTime.Now;
+                }
+            };
+            DateTime threadTime1 = DateTime.Now, threadTime2 = DateTime.Now, threadTime3 = DateTime.Now;
+            Parallel.Invoke(async () => { threadTime1 = await asyncReadLockAction(); }, 
+                async () => { threadTime2 = await asyncReadLockAction(); }, 
+                async () => { threadTime3 = await asyncReadLockAction(); });
             waitHandle.Wait();
-            Assert.Equal(3, numberList.Count);
+            var timeDiff = (threadTime2 - threadTime1).TotalMilliseconds;
+            var timeDiff1 = (threadTime3 - threadTime1).TotalMilliseconds;
+            Assert.InRange(Math.Abs(timeDiff), 0, 100);
+            Assert.InRange(Math.Abs(timeDiff1), 0, 100);
         }
         
         [Fact]
         public void AsyncReadWriteLock_Test_For_Multiple_Write_Lock_Aquired_Sequentially()
         {
-            var asyncReadWriteLock = new AsyncReadWriteLock();
-            var lockTime = new List<DateTime>();
-            var numberList = new List<int>();
-            var waitHandle = new CountdownEvent(3);
-            Parallel.Invoke(async () => await getWriteLockAction(lockTime, waitHandle, asyncReadWriteLock, numberList),
-                async () => await getWriteLockAction(lockTime, waitHandle, asyncReadWriteLock, numberList),
-                async () => await getWriteLockAction(lockTime, waitHandle, asyncReadWriteLock, numberList));
+            AsyncReadWriteLock asyncLock = new AsyncReadWriteLock();
+            CountdownEvent waitHandle = new CountdownEvent(2);
+            Func<Task<DateTime>> asyncLockAction = async () =>
+            {
+                using (await asyncLock.WriteLockAsync())
+                {
+                    Thread.Sleep(2000);
+                    waitHandle.Signal();
+                    return DateTime.Now;
+                }
+            };
+            DateTime threadTime1 = DateTime.Now, threadTime2 = DateTime.Now;
+            Parallel.Invoke(async () => { threadTime1 = await asyncLockAction(); }, async () => { threadTime2 = await asyncLockAction(); });
             waitHandle.Wait();
-            List<DateTime> expectedList = lockTime;
-            lockTime.Sort();
-            Assert.Equal(expectedList, lockTime);
+            var timeDiff = (threadTime2 - threadTime1).TotalMilliseconds;
+            Assert.InRange(Math.Abs(timeDiff), 2000, 4000);
         }
 
         [Fact]

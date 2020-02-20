@@ -1,0 +1,4 @@
+[submodule "net-standard-common-libraries"]
+	path = net-standard-common-libraries
+	url = https://github.com/TaviscaSolutions/net-standard-common-libraries
+	branch = develop

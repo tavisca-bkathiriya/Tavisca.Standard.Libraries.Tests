@@ -6,7 +6,7 @@ using System.Threading;
 using Tavisca.Platform.Common.Internal;
 using Xunit;
 
-namespace TasksIntegrationTest
+namespace Tavisca.Libraries.Tasks.Tests
 {
     public class TaskPoolTest
     {
