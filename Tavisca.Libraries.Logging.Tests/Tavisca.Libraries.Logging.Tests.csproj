@@ -8,9 +8,31 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
+    <PackageReference Include="NEST" Version="6.3.1" />
+    <PackageReference Include="NEST.JsonNetSerializer" Version="6.3.1" />
     <PackageReference Include="Tavisca.Libraries.Logging" Version="0.9.0" />
+    <PackageReference Include="Tavisca.Libraries.Logging.Filters" Version="0.9.0" />
+    <PackageReference Include="Tavisca.Libraries.Logging.Sink.Composite" Version="0.9.0" />
+    <PackageReference Include="Tavisca.Libraries.Logging.Sink.Firehose" Version="0.9.0" />
+    <PackageReference Include="Tavisca.Libraries.Logging.Sink.Redis" Version="0.9.0" />
+    <PackageReference Include="Tavisca.Libraries.Logging.WebApi" Version="0.9.0" />
     <PackageReference Include="xunit" Version="2.4.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Resource.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resource.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Resource.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resource.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>
