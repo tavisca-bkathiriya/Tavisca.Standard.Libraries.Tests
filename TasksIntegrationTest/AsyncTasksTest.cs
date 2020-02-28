@@ -13,6 +13,7 @@ namespace Tavisca.Libraries.Tasks.Tests
 {
     public class AsyncTasksTest
     {
+
         [Fact]
         public void AsyncTask_Should_Run_Actions_In_Created_Pool()
         {
@@ -126,7 +127,7 @@ namespace Tavisca.Libraries.Tasks.Tests
             Assert.NotEqual(threadId1, threadId5);
             Assert.NotEqual(threadId4, threadId8);
         }
-
+            
         [Fact]
         public void AsyncTask_Should_Run_Actions_In_Created_RoundRobinPool_With_GivenSize()
         {
