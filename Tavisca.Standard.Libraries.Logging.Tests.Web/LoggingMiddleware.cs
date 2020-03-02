@@ -63,7 +63,7 @@ namespace Tavisca.Standard.Libraries.Logging.Tests.Web
 
         protected override bool ShouldLog(HttpRequest request, HttpResponse response)
         {
-            throw new BaseApplicationException("Error code: 4xx", "Error message:Test Error message", System.Net.HttpStatusCode.BadRequest);
+            //throw new BaseApplicationException("Error code: 4xx", "Error message:Test Error message", System.Net.HttpStatusCode.BadRequest);
             return true;
         }
         private static Tuple<string, string> GetRouteMapping(string path)
