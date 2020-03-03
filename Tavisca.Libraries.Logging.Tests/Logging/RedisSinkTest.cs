@@ -53,6 +53,49 @@ namespace Tavisca.Libraries.Logging.Tests.Logging
         }
 
         [Fact]
+        public void Should_Log_Exception_Log()
+        {
+            try
+            {
+                throw new ArgumentNullException();
+            }
+            catch (Exception exception)
+            {
+                var id = Convert.ToString(Guid.NewGuid());
+                var apiLog = Utility.GetApiLog();
+                apiLog.Id = id;
+                var exceptionLog = GetErrorEntry(exception, apiLog);
+                ILogFormatter formatter = JsonLogFormatter.Instance;
+                var redisSink = Utility.GetRedisSink();
+                var logWriter = new LogWriter(formatter, redisSink);
+                logWriter.WriteAsync(exceptionLog).GetAwaiter().GetResult();
+
+                Thread.Sleep(40000);
+
+                var logData = Utility.GetEsLogDataById(id);
+                var esLogId = string.Empty;
+                logData.TryGetValue("id", out esLogId);
+                Assert.Equal(id, esLogId);
+            }
+        }
+
+        private ExceptionLog GetErrorEntry(Exception exception, ILog log)
+        {
+            var exceptionLog = new ExceptionLog(exception);
+
+            var baseLog = log as LogBase;
+            if (baseLog == null)
+            {
+                return exceptionLog;
+            }
+
+            exceptionLog.AppDomain = baseLog.AppDomain;
+            exceptionLog.ApplicationName = baseLog.ApplicationName;
+            exceptionLog.Id = baseLog.Id;
+            return exceptionLog;
+        }
+
+        [Fact]
         public void Should_Add_Ip_Prefix()
         {
             var id = Convert.ToString(Guid.NewGuid());
