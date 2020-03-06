@@ -8,14 +8,27 @@ using Tavisca.Platform.Common.Plugins.Json;
 using Tavisca.Libraries.Logging.Tests.Utilities;
 using Xunit;
 using System.Net;
+using Tavisca.Platform.Common.ExceptionManagement;
+using Tavisca.Platform.Common;
+using Tavisca.Standard.ClassLibrary.Test;
 
 namespace Tavisca.Libraries.Logging.Tests.Logging
 {
     public class RedisSinkTest
     {
+        public class ErrorHandler : IErrorHandler
+        {
+            public bool HandleException(Exception ex, string policy, out Exception newException)
+            {
+                newException = ex;
+                return true;
+            }
+        }
+
         [Fact]
         public void Should_Log_Api_Log()
         {
+            ExceptionPolicy.Configure(new ErrorHandler());
             var id = Convert.ToString(Guid.NewGuid());
             var apiLog = Utility.GetApiLog();
             apiLog.Id = id;
@@ -31,6 +44,36 @@ namespace Tavisca.Libraries.Logging.Tests.Logging
             var esLogId = string.Empty;
             logData.TryGetValue("id", out esLogId);
             Assert.Equal(id, esLogId);            
+        }
+
+        [Fact]
+        public void Should_Not_Log_Api_Log()
+        {
+            ExceptionPolicy.Configure(new ErrorHandler());
+            var id = Convert.ToString(Guid.NewGuid());
+            var apiLog = Utility.GetApiLog();
+            apiLog.Id = id;
+
+            ILogFormatter formatter = JsonLogFormatter.Instance;
+
+            var configProvider = new Tavisca.Common.Plugins.Configuration.ConfigurationProvider("test_new_app");
+            var redisSink = Utility.GetLoggingDisabledRedisSink(configProvider);
+
+            var logWriter = new LogWriter(formatter, redisSink, configurationProvider: configProvider);
+            logWriter.WriteAsync(apiLog).GetAwaiter().GetResult();
+            Thread.Sleep(40000);
+
+            Assert.Throws<Exception>(() => Utility.GetEsLogDataById(id));
+        }
+
+        [Fact]
+        public void Should_Throw_ArgumentNullException_When_RedisSetting_Is_Null()
+        {
+            ExceptionPolicy.Configure(new ErrorHandler());
+            var id = Convert.ToString(Guid.NewGuid());
+            var apiLog = Utility.GetApiLog();
+            apiLog.Id = id;
+            Assert.Throws<ArgumentNullException>(() => Utility.GetRedisSinkWithNullSettings());
         }
 
         [Fact]
@@ -77,6 +120,13 @@ namespace Tavisca.Libraries.Logging.Tests.Logging
                 logData.TryGetValue("id", out esLogId);
                 Assert.Equal(id, esLogId);
             }
+        }
+
+        [Fact]
+        public void Should_Log_Exception_Log1()
+        {
+            var temp = new Class1();
+            temp.TestMethod();
         }
 
         private ExceptionLog GetErrorEntry(Exception exception, ILog log)

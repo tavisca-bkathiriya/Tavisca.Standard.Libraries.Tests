@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tavisca.Libraries.Logging.T
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tavisca.Standard.Libraries.Logging.Tests.Web", "Tavisca.Standard.Libraries.Logging.Tests.Web\Tavisca.Standard.Libraries.Logging.Tests.Web.csproj", "{F7F77C1B-B8C1-47A2-BEBA-AB9D52ED2EED}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tavisca.Standard.ClassLibrary.Test", "Tavisca.Standard.ClassLibrary.Test\Tavisca.Standard.ClassLibrary.Test.csproj", "{0493F212-7E57-47B1-ACC5-D70E697CEA2E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,6 +37,10 @@ Global
 		{F7F77C1B-B8C1-47A2-BEBA-AB9D52ED2EED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F7F77C1B-B8C1-47A2-BEBA-AB9D52ED2EED}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F7F77C1B-B8C1-47A2-BEBA-AB9D52ED2EED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0493F212-7E57-47B1-ACC5-D70E697CEA2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0493F212-7E57-47B1-ACC5-D70E697CEA2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0493F212-7E57-47B1-ACC5-D70E697CEA2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0493F212-7E57-47B1-ACC5-D70E697CEA2E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

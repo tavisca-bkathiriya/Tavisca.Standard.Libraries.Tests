@@ -5,6 +5,7 @@ using System.Text;
 using Tavisca.Common.Plugins.Aws;
 using Tavisca.Common.Plugins.Configuration;
 using Tavisca.Common.Plugins.Redis;
+using Tavisca.Libraries.Configuration;
 using Tavisca.Libraries.Logging.Sink.Redis;
 using Tavisca.Platform.Common;
 using Tavisca.Platform.Common.ExceptionManagement;
@@ -115,8 +116,23 @@ namespace Tavisca.Libraries.Logging.Tests.Utilities
             //    }
             //};
 
-            var configProvider = new ConfigurationProvider("hotel_content_service");
+            var configProvider = new Tavisca.Common.Plugins.Configuration.ConfigurationProvider("hotel_content_service");
             var redisLogSettings = new RedisLogSettingsProvider(configProvider);
+
+            return new RedisSink(redisLogSettings);
+        }
+
+        public static RedisSink GetLoggingDisabledRedisSink(Common.Plugins.Configuration.ConfigurationProvider configProvider)
+        {
+            var redisLogSettings = new RedisLogSettingsProvider(configProvider);
+            return new RedisSink(redisLogSettings);
+        }
+
+        public static RedisSink GetRedisSinkWithNullSettings()
+        {
+            RedisLogSettings redisLogSettings = null;
+            //var configProvider = new Tavisca.Common.Plugins.Configuration.ConfigurationProvider("hotel_content_service");
+            //var redisLogSettings = new RedisLogSettingsProvider(configProvider);
 
             return new RedisSink(redisLogSettings);
         }
@@ -134,7 +150,8 @@ namespace Tavisca.Libraries.Logging.Tests.Utilities
         public static FirehoseSink GetFirehoseSink()
         {
             //IFirehoseLogSettingsProvider firehoseLogSettingsProvider = new StaticFireHoseSettingsProvider();
-            var configProvider = new ConfigurationProvider("hotel_content_service");
+            var configProvider = new Tavisca.Common.Plugins.Configuration.ConfigurationProvider("hotel_content_service");
+            //var value = configProvider.GetGlobalConfigurationAsString("def", "xyz");
             var firehoseLogSettingsProvider = new FirehoseSettingsProvider(configProvider);
             var firehoseSink = new FirehoseSink(firehoseLogSettingsProvider);
             return firehoseSink;
