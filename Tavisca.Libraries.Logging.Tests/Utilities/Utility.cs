@@ -157,7 +157,17 @@ namespace Tavisca.Libraries.Logging.Tests.Utilities
             return firehoseSink;
         }
 
-        public static CompositeSink GetCompositeSink(ILogFormatter logFormatter, ILogSink primarySink, ILogSink secondarySink)
+        public static FirehoseSink GetCrossAccountFirehoseSink()
+        {
+            //IFirehoseLogSettingsProvider firehoseLogSettingsProvider = new StaticFireHoseSettingsProvider();
+            var configProvider = new Tavisca.Common.Plugins.Configuration.ConfigurationProvider("test_arn_app");
+            //var value = configProvider.GetGlobalConfigurationAsString("def", "xyz");
+            var firehoseLogSettingsProvider = new FirehoseSettingsProvider(configProvider);
+            var firehoseSink = new FirehoseSink(firehoseLogSettingsProvider);
+            return firehoseSink;
+        }
+
+            public static CompositeSink GetCompositeSink(ILogFormatter logFormatter, ILogSink primarySink, ILogSink secondarySink)
         {
             var compositeSink = new CompositeSink(logFormatter, primarySink, secondarySink);
             return compositeSink;

@@ -29,7 +29,7 @@ namespace Tavisca.Libraries.Logging.Tests.Logging
             var logData = Utility.GetEsLogDataById(id);
             var esLogId = string.Empty;
             logData.TryGetValue("id", out esLogId);
-            Assert.Equal(id, esLogId); //TODO: Manually verify logs using primary firehose sink (Use valid firehose credentials) 
+            Assert.Equal(id, esLogId); 
         }
     }
 }

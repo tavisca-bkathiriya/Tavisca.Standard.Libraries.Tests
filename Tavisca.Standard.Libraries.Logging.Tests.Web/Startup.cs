@@ -63,6 +63,7 @@ namespace Tavisca.Standard.Libraries.Logging.Tests.Web
 
             app.UseMiddleware<RewindContextStreamMiddleware>();
             app.UseMiddleware<LoggingMiddleware>();
+            //app.UseMiddleware<TestMiddleware>(); //TODO: Manually verify error in response by uncommenting this line
 
             app.UseMvc(routes =>
             {

@@ -42,7 +42,7 @@ namespace Tavisca.Libraries.Logging.Tests.Logging
             var formatter = JsonLogFormatter.Instance;
             var firehoseSink = Utility.GetFirehoseSink();
             var redisSink = Utility.GetRedisSink();
-            var compositeSink = Utility.GetCompositeSink(formatter, redisSink, firehoseSink);
+            var compositeSink = Utility.GetCompositeSink(formatter, firehoseSink, redisSink);
 
             var logWriter = new LogWriter(formatter, compositeSink);
             logWriter.WriteAsync(apiLog).GetAwaiter().GetResult();

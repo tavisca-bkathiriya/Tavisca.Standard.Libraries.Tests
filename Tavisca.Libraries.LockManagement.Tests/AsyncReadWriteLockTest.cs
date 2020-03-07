@@ -32,6 +32,10 @@ namespace Tavisca.Libraries.LockManagement.Tests
             }
         };
 
+        //Should be able to acquire read lock for any code block invoked in an async way
+        //Calling dispose on async read lock, should release the lock
+        //Multiple read operations can be executed in parallel by acquiring read lock
+
         [Fact]
         public void AsyncReadWriteLock_Test_For_Multiple_Read_Lock_Aquired_At_Same_Time()
         {
@@ -48,7 +52,9 @@ namespace Tavisca.Libraries.LockManagement.Tests
             Assert.InRange(Math.Abs(timeDiff), 0, 100);
             Assert.InRange(Math.Abs(timeDiff1), 0, 100);
         }
-        
+
+        //Should be able to acquire write lock for any code block invoked in an async way
+        //Calling dispose on async write lock, should release the lock
         [Fact]
         public void AsyncReadWriteLock_Test_For_Multiple_Write_Lock_Aquired_Sequentially()
         {
@@ -62,6 +68,9 @@ namespace Tavisca.Libraries.LockManagement.Tests
             var timeDiff = (threadTime2 - threadTime1).TotalMilliseconds;
             Assert.InRange(Math.Abs(timeDiff), 2000, 2500);
         }
+
+        //If the object acquire write lock, all the read/write operations should wait for its completion.
+        //If multiple read/write operations are waiting in a queue, preference should be given to write operation
 
         [Fact]
         public async Task AsyncReadWriteLock_Test_For_Write_Lock_Gets_Priority_When_Both_Lock_Are_In_Wait()
@@ -78,12 +87,12 @@ namespace Tavisca.Libraries.LockManagement.Tests
                 },
                 () =>
                 {
-                    Thread.Sleep(20);
+                    Thread.Sleep(200);
                     threadTime2Task = asyncReadLockAction(asyncLock, waitHandle);
                 },
                 () =>
                 {
-                    Thread.Sleep(50);
+                    Thread.Sleep(500);
                     threadTime3Task = asyncWriteLockAction(asyncLock, waitHandle);
                 });
 
@@ -93,9 +102,12 @@ namespace Tavisca.Libraries.LockManagement.Tests
             waitHandle.Wait();
             var timeDiffWriteLock = (threadTime3 - threadTime1).TotalMilliseconds;
             var timeDiffReadLock = (threadTime2 - threadTime1).TotalMilliseconds;
-            Assert.InRange(Math.Abs(timeDiffWriteLock), 2000, 2500);
-            Assert.InRange(Math.Abs(timeDiffReadLock), 4000, 4500);
+            Assert.InRange(timeDiffWriteLock, 2000, 2500);
+            Assert.InRange(timeDiffReadLock, 4000, 4500);
         }
+
+        //If the object acquire read lock, all the write operations should wait for its completion.
+        //If multiple write operations are waiting in a queue, they will be executed in sequence
 
         [Fact]
         public async Task AsyncReadWriteLock_Test_For_WriteLocks_Should_Wait_In_Queue_When_ReadLock_Is_Acquired()
@@ -112,12 +124,12 @@ namespace Tavisca.Libraries.LockManagement.Tests
                 },
                 () =>
                 {
-                    Thread.Sleep(50);
+                    Thread.Sleep(500);
                     threadTime2Task = asyncWriteLockAction(asyncLock, waitHandle);
                 },
                 () =>
                 {
-                    Thread.Sleep(20);
+                    Thread.Sleep(200);
                     threadTime3Task = asyncWriteLockAction(asyncLock, waitHandle);
                 });
 
@@ -127,8 +139,10 @@ namespace Tavisca.Libraries.LockManagement.Tests
             waitHandle.Wait();
             var timeDiff1 = (threadTime3 - threadTime1).TotalMilliseconds;
             var timeDiff2 = (threadTime2 - threadTime1).TotalMilliseconds;
-            Assert.InRange(Math.Abs(timeDiff1), 2000, 2500);
-            Assert.InRange(Math.Abs(timeDiff2), 4000, 4500);
+            var timeDiff3 = Math.Abs((threadTime2 - threadTime3).TotalMilliseconds);
+            Assert.InRange(timeDiff1, 2000, 2500);
+            Assert.InRange(timeDiff2, 4000, 4500);
+            Assert.InRange(timeDiff3, 2000, 2500);
         }       
     }
 }
