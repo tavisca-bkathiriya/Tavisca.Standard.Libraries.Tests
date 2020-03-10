@@ -13,10 +13,10 @@ namespace Tavisca.Libraries.Tasks.Tests
 {
     public class AsyncTasksTest
     {
-        // Should be able to configure a default task pool with default size for a set of actions. Default size would be equal to number of processors on the machine.
-        // Should be able to enqueue an action for configured task pool
+        private static object _lock = new object();
+
         [Fact]
-        public void AsyncTask_Should_Run_Actions_In_Created_Pool()
+        public void Should_Be_Able_To_Configure_Default_Task_Pool_With_Default_Size()
         {
             var threadIds = new ConcurrentBag<int>();
             var waitHandle = new CountdownEvent(10);
@@ -27,7 +27,11 @@ namespace Tavisca.Libraries.Tasks.Tests
                 waitHandle.Signal();
             };
 
-            AsyncTasks.AddPool("testPool");
+            lock (_lock)
+            {
+                AsyncTasks.UseDefaultPool();
+                AsyncTasks.AddPool("testPool");
+            }
             AsyncTasks.Run(runTask, "testPool");
             AsyncTasks.Run(runTask, "testPool");
             AsyncTasks.Run(runTask, "testPool");
@@ -44,9 +48,71 @@ namespace Tavisca.Libraries.Tasks.Tests
             Assert.Equal(Environment.ProcessorCount, threadIds.Distinct().Count());
         }
 
-        //Should be able to configure a default task pool with specific size for a set of actions
         [Fact]
-        public void AsyncTask_Should_Run_Actions_In_Created_Pool_With_GivenSize()
+        public void Should_Be_Able_To_Enqueue_Action_In_Configured_Taskpool()
+        {
+            var isActionExcecuted = new ConcurrentBag<bool>();
+            var waitHandle = new CountdownEvent(10);
+
+            Action runTask = () => {
+                Thread.Sleep(1000);
+                isActionExcecuted.Add(true);
+                waitHandle.Signal();
+            };
+
+            lock (_lock)
+            {
+                AsyncTasks.UseDefaultPool();
+                AsyncTasks.AddPool("testPool");
+            }
+            AsyncTasks.Run(runTask, "testPool");
+            AsyncTasks.Run(runTask, "testPool");
+            AsyncTasks.Run(runTask, "testPool");
+            AsyncTasks.Run(runTask, "testPool");
+            AsyncTasks.Run(runTask, "testPool");
+            AsyncTasks.Run(runTask, "testPool");
+            AsyncTasks.Run(runTask, "testPool");
+            AsyncTasks.Run(runTask, "testPool");
+            AsyncTasks.Run(runTask, "testPool");
+            AsyncTasks.Run(runTask, "testPool");
+            waitHandle.Wait();
+            AsyncTasks.RemoveAll();
+        
+            var expected = 10;
+            Assert.Equal(expected, isActionExcecuted.Count);
+
+        }
+
+        [Fact]
+        public void Should_Be_Able_To_Configure_Default_Taskpool_With_Specific_Size()
+        {
+            var threadIds = new ConcurrentBag<int>();
+            var waitHandle = new CountdownEvent(4);
+
+            Action runTask = () => {
+                Thread.Sleep(1000);
+                threadIds.Add(Thread.CurrentThread.ManagedThreadId);
+                waitHandle.Signal();
+            };
+            
+            int poolSize = 2;
+            lock (_lock)
+            {
+                AsyncTasks.UseDefaultPool();
+                AsyncTasks.AddPool("testPool1", poolSize);
+            }
+            AsyncTasks.Run(runTask, "testPool1");
+            AsyncTasks.Run(runTask, "testPool1");
+            AsyncTasks.Run(runTask, "testPool1");
+            AsyncTasks.Run(runTask, "testPool1");
+            waitHandle.Wait();
+            AsyncTasks.RemoveAll();
+
+            Assert.Equal(poolSize, threadIds.Distinct().Count());
+        }
+
+        [Fact]
+        public void Shoul_Be_Able_To_Configure_Default_Taskpool()
         {
             var threadIds = new ConcurrentBag<int>();
             var waitHandle = new CountdownEvent(4);
@@ -58,33 +124,11 @@ namespace Tavisca.Libraries.Tasks.Tests
             };
 
             int poolSize = 2;
-            AsyncTasks.AddPool("testPool1", poolSize);
-            AsyncTasks.Run(runTask, "testPool1");
-            AsyncTasks.Run(runTask, "testPool1");
-            AsyncTasks.Run(runTask, "testPool1");
-            AsyncTasks.Run(runTask, "testPool1");
-            waitHandle.Wait();
-            AsyncTasks.RemoveAll();
-
-            Assert.Equal(poolSize, threadIds.Distinct().Count());
-        }
-
-        // Should be able to configure a default task pool for a set of actions
-        [Fact]
-        public void AsyncTask_Should_Run_Actions_In_Created_Pool_With_GivenSize2()
-        {
-            var threadIds = new ConcurrentBag<int>();
-            var waitHandle = new CountdownEvent(4);
-
-            Action runTask = () => {
-                Thread.Sleep(1000);
-                threadIds.Add(Thread.CurrentThread.ManagedThreadId);
-                waitHandle.Signal();
-            };
-
-            int poolSize = 2;
-            var taskPool = new TaskPool(poolSize);
-            AsyncTasks.AddPool("testPool2", taskPool);
+            lock (_lock)
+            {
+                var taskPool = new TaskPool(poolSize);
+                AsyncTasks.AddPool("testPool2", taskPool);
+            }
             AsyncTasks.Run(runTask, "testPool2");
             AsyncTasks.Run(runTask, "testPool2");
             AsyncTasks.Run(runTask, "testPool2");
@@ -95,9 +139,9 @@ namespace Tavisca.Libraries.Tasks.Tests
             Assert.Equal(poolSize, threadIds.Distinct().Count());
         }
 
-        //Should be able to configure a round robin task pool with default size for a set of actions.Default size would be equal to number of processors on the machine.
+        
         [Fact]
-        public void AsyncTask_Should_Run_Actions_In_Created_RoundRobinPool()
+        public void Should_Be_Able_To_Configure_Roundrobin_Taskpool()
         {
             var waitHandle = new CountdownEvent(10);
 
@@ -108,8 +152,12 @@ namespace Tavisca.Libraries.Tasks.Tests
 
             int threadId1 = 0, threadId2 = 0, threadId3 = 0, threadId4 = 0, threadId5 = 0;
             int threadId6 = 0, threadId7 = 0, threadId8 = 0, threadId9 = 0, threadId10 = 0;
-            AsyncTasks.UseRoundRobinPool();
-            AsyncTasks.AddPool("testPool3");
+
+            lock (_lock)
+            {
+                AsyncTasks.UseRoundRobinPool();
+                AsyncTasks.AddPool("testPool3");
+            }
             AsyncTasks.Run(() => { threadId1 = runTask(); }, "testPool3");
             AsyncTasks.Run(() => { threadId2 = runTask(); }, "testPool3");
             AsyncTasks.Run(() => { threadId3 = runTask(); }, "testPool3");
@@ -130,11 +178,39 @@ namespace Tavisca.Libraries.Tasks.Tests
             Assert.NotEqual(threadId4, threadId8);
         }
 
-        //Should be able to configure a round robin task pool with specific size for a set of actions
-        //In case of round robin pool, number of queues should be same as the configured size and actions should be enqueued in round robin manner in each queue
+        [Fact]
+        public void Should_Be_Able_To_Configure_Roundrobin_Taskpool_With_A_Given_Size()
+        {
+            var waitHandle = new CountdownEvent(5);
+
+            Func<int> runTask = () => {
+                waitHandle.Signal();
+                return Thread.CurrentThread.ManagedThreadId;
+            };
+
+            int poolSize = 3;
+            int threadId1 = 0, threadId2 = 0, threadId3 = 0, threadId4 = 0, threadId5 = 0;
+            lock (_lock)
+            {
+                AsyncTasks.UseRoundRobinPool();
+                AsyncTasks.AddPool("testPool4", poolSize);
+            }
+            AsyncTasks.Run(() => { threadId1 = runTask(); }, "testPool4");
+            AsyncTasks.Run(() => { threadId2 = runTask(); }, "testPool4");
+            AsyncTasks.Run(() => { threadId3 = runTask(); }, "testPool4");
+            AsyncTasks.Run(() => { threadId4 = runTask(); }, "testPool4");
+            AsyncTasks.Run(() => { threadId5 = runTask(); }, "testPool4");
+            waitHandle.Wait();
+            AsyncTasks.RemoveAll();
+
+            Assert.Equal(threadId1, threadId4);
+            Assert.Equal(threadId2, threadId5);
+            Assert.NotEqual(threadId1, threadId2);
+            Assert.NotEqual(threadId1, threadId3);
+        }
 
         [Fact]
-        public void AsyncTask_Should_Run_Actions_In_Created_RoundRobinPool_With_GivenSize()
+        public void Actions_Should_Be_Enqueued_In_RoundRobin_Manner()
         {
             var waitHandle = new CountdownEvent(5);
 
@@ -145,8 +221,11 @@ namespace Tavisca.Libraries.Tasks.Tests
 
             int poolSize = 2;
             int threadId1 = 0, threadId2 = 0, threadId3 = 0, threadId4 =0, threadId5 = 0;
-            AsyncTasks.UseRoundRobinPool();
-            AsyncTasks.AddPool("testPool4", poolSize);
+            lock (_lock)
+            {
+                AsyncTasks.UseRoundRobinPool();
+                AsyncTasks.AddPool("testPool4", poolSize);
+            }
             AsyncTasks.Run(() => { threadId1 = runTask(); }, "testPool4");
             AsyncTasks.Run(() => { threadId2 = runTask(); }, "testPool4");
             AsyncTasks.Run(() => { threadId3 = runTask(); }, "testPool4");
@@ -161,7 +240,6 @@ namespace Tavisca.Libraries.Tasks.Tests
             Assert.NotEqual(threadId1, threadId2);
         }
 
-        //Should be able to configure a round robin task pool for a set of actions
         [Fact]
         public void AsyncTask_Should_Run_Actions_In_Created_RoundRobinPool_With_GivenSize2()
         {
@@ -188,9 +266,8 @@ namespace Tavisca.Libraries.Tasks.Tests
             Assert.Equal(threadId1, threadId5);
             Assert.Equal(threadId2, threadId2);
             Assert.NotEqual(threadId1, threadId2);
-        }
+        }        
         
-        //Should be able to enqueue an action even without configuring a taskpool, it should implicitely configure a taskpool with the supplied name
         [Fact]
         public void Should_Be_Able_To_Enqueue_Actions_Without_Configuring_Taskpool()
         {
@@ -219,7 +296,6 @@ namespace Tavisca.Libraries.Tasks.Tests
             Assert.Equal(Environment.ProcessorCount, threadIds.Distinct().Count());
         }
 
-        //Should be able to enqueue an action even without configuring a taskpool & supplying a name, it should implicitely configure a taskpool with a default name
         [Fact]
         public void Should_Be_Able_To_Enqueue_Actions_Without_Configuring_Taskpool_And_Name()
         {
@@ -248,7 +324,6 @@ namespace Tavisca.Libraries.Tasks.Tests
             Assert.Equal(Environment.ProcessorCount, threadIds.Distinct().Count());
         }
         
-        //Should be able to enqueue actions/ add pool from multiple threads in a thread safe manner.
         [Fact]
         public void Should_Be_Able_To_Enqueue_Actions_From_Multiple_Threads()
         {
@@ -286,7 +361,6 @@ namespace Tavisca.Libraries.Tasks.Tests
             Assert.Equal(4, threadIds.Distinct().Count());
         }
 
-        //In case of default pool, only one queue is available and actions should be executed in FIFO manner
         [Fact]
         public void AsyncTask_Default_Pool_Should_Execute_Action_In_FIFO_manner()
         {
@@ -313,7 +387,11 @@ namespace Tavisca.Libraries.Tasks.Tests
             };
             
             int poolSize = 2;
-            AsyncTasks.AddPool("testPool10", poolSize);
+            lock (_lock)
+            {
+                AsyncTasks.UseDefaultPool();
+                AsyncTasks.AddPool("testPool10", poolSize);
+            }
 
             Parallel.Invoke(
                () => {

@@ -38,7 +38,7 @@ namespace Tavisca.Libraries.Logging.Tests.Logging
 
             var logWriter = new LogWriter(formatter, redisSink);
             logWriter.WriteAsync(apiLog).GetAwaiter().GetResult();
-            Thread.Sleep(40000);
+            ////Thread.Sleep(40000);
 
             var logData = Utility.GetEsLogDataById(id);
             var esLogId = string.Empty;
@@ -56,12 +56,16 @@ namespace Tavisca.Libraries.Logging.Tests.Logging
 
             ILogFormatter formatter = JsonLogFormatter.Instance;
 
-            var configProvider = new Tavisca.Common.Plugins.Configuration.ConfigurationProvider("test_new_app");
+            Tavisca.Common.Plugins.Configuration.ConfigurationProvider configProvider;
+            lock (Utility._lock)
+            {
+                configProvider = new Tavisca.Common.Plugins.Configuration.ConfigurationProvider("test_new_app");
+            }
             var redisSink = Utility.GetLoggingDisabledRedisSink(configProvider);
 
             var logWriter = new LogWriter(formatter, redisSink, configurationProvider: configProvider);
             logWriter.WriteAsync(apiLog).GetAwaiter().GetResult();
-            Thread.Sleep(40000);
+            //Thread.Sleep(40000);
 
             Assert.Throws<Exception>(() => Utility.GetEsLogDataById(id));
         }
@@ -87,7 +91,7 @@ namespace Tavisca.Libraries.Logging.Tests.Logging
 
             var logWriter = new LogWriter(formatter, redisSink);
             logWriter.WriteAsync(traceLog).GetAwaiter().GetResult();
-            Thread.Sleep(40000);
+            //Thread.Sleep(40000);
 
             var logData = Utility.GetEsLogDataById(id);
             var esLogId = string.Empty;
@@ -113,7 +117,7 @@ namespace Tavisca.Libraries.Logging.Tests.Logging
                 var logWriter = new LogWriter(formatter, redisSink);
                 logWriter.WriteAsync(exceptionLog).GetAwaiter().GetResult();
 
-                Thread.Sleep(40000);
+                //Thread.Sleep(40000);
 
                 var logData = Utility.GetEsLogDataById(id);
                 var esLogId = string.Empty;
@@ -156,7 +160,7 @@ namespace Tavisca.Libraries.Logging.Tests.Logging
 
             var logWriter = new LogWriter(formatter, redisSink);
             logWriter.WriteAsync(apiLog).GetAwaiter().GetResult();
-            Thread.Sleep(40000);
+            //Thread.Sleep(40000);
 
             var logData = Utility.GetEsLogDataById(id);
             string esLogId;
@@ -175,7 +179,7 @@ namespace Tavisca.Libraries.Logging.Tests.Logging
 
             var logWriter = new LogWriter(formatter, redisSink);
             logWriter.WriteAsync(apiLog).GetAwaiter().GetResult();
-            Thread.Sleep(40000);
+            //Thread.Sleep(40000);
 
             var logData = Utility.GetEsLogDataById(id);
             string esLogId;
@@ -242,7 +246,7 @@ namespace Tavisca.Libraries.Logging.Tests.Logging
 
             var logWriter = new LogWriter(formatter, redisSink);
             logWriter.WriteAsync(apiLog).GetAwaiter().GetResult();
-            Thread.Sleep(40000);
+            //Thread.Sleep(40000);
 
             var logData = Utility.GetEsLogDataById(id);
 

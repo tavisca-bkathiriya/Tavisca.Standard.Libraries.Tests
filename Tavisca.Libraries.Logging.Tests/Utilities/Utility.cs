@@ -17,6 +17,8 @@ namespace Tavisca.Libraries.Logging.Tests.Utilities
     {
         private static readonly string _request = Resource.BookInitRequest;
         private static readonly string _xmlData = Resource.XmlData;
+        internal static object _lock = new object();
+
         public static ApiLog GetApiLog()
         {
             var log = new ApiLog
@@ -115,59 +117,67 @@ namespace Tavisca.Libraries.Logging.Tests.Utilities
             //        QueueName = "travel-qa-logging-trace"
             //    }
             //};
-
-            var configProvider = new Tavisca.Common.Plugins.Configuration.ConfigurationProvider("hotel_content_service");
-            var redisLogSettings = new RedisLogSettingsProvider(configProvider);
-
+            
+            RedisLogSettingsProvider redisLogSettings;
+            lock (_lock)
+            {
+                var configProvider = new Tavisca.Common.Plugins.Configuration.ConfigurationProvider("hotel_content_service");
+                redisLogSettings = new RedisLogSettingsProvider(configProvider);
+            }
             return new RedisSink(redisLogSettings);
         }
 
         public static RedisSink GetLoggingDisabledRedisSink(Common.Plugins.Configuration.ConfigurationProvider configProvider)
         {
-            var redisLogSettings = new RedisLogSettingsProvider(configProvider);
+            RedisLogSettingsProvider redisLogSettings;
+            lock (_lock)
+            {
+                 redisLogSettings = new RedisLogSettingsProvider(configProvider);
+            }
             return new RedisSink(redisLogSettings);
         }
 
         public static RedisSink GetRedisSinkWithNullSettings()
         {
             RedisLogSettings redisLogSettings = null;
-            //var configProvider = new Tavisca.Common.Plugins.Configuration.ConfigurationProvider("hotel_content_service");
-            //var redisLogSettings = new RedisLogSettingsProvider(configProvider);
-
             return new RedisSink(redisLogSettings);
         }
 
-        public static Dictionary<string,string> GetEsLogDataById(string id)
+        public static Dictionary<string,string> GetEsLogDataById(string id, int extraRetryCount = 0)
         {
             var url = "https://es.qa.cnxloyalty.com";
             var esLogReader = new EsLogReader(url);
             var index = "log*";
             var query = $"id:{id}";
-            var logData = esLogReader.GetLog(index, query);
+            var logData = esLogReader.GetLog(index, query, extraRetryCount);
             return logData;
         }
 
         public static FirehoseSink GetFirehoseSink()
         {
-            //IFirehoseLogSettingsProvider firehoseLogSettingsProvider = new StaticFireHoseSettingsProvider();
-            var configProvider = new Tavisca.Common.Plugins.Configuration.ConfigurationProvider("hotel_content_service");
-            //var value = configProvider.GetGlobalConfigurationAsString("def", "xyz");
-            var firehoseLogSettingsProvider = new FirehoseSettingsProvider(configProvider);
+            FirehoseSettingsProvider firehoseLogSettingsProvider;
+            lock (_lock)
+            {
+                var configProvider = new Tavisca.Common.Plugins.Configuration.ConfigurationProvider("hotel_content_service");
+                firehoseLogSettingsProvider = new FirehoseSettingsProvider(configProvider);
+            }
             var firehoseSink = new FirehoseSink(firehoseLogSettingsProvider);
             return firehoseSink;
         }
 
         public static FirehoseSink GetCrossAccountFirehoseSink()
         {
-            //IFirehoseLogSettingsProvider firehoseLogSettingsProvider = new StaticFireHoseSettingsProvider();
-            var configProvider = new Tavisca.Common.Plugins.Configuration.ConfigurationProvider("test_arn_app");
-            //var value = configProvider.GetGlobalConfigurationAsString("def", "xyz");
-            var firehoseLogSettingsProvider = new FirehoseSettingsProvider(configProvider);
+            FirehoseSettingsProvider firehoseLogSettingsProvider;
+            lock (_lock)
+            {
+                var configProvider = new Tavisca.Common.Plugins.Configuration.ConfigurationProvider("test_arn_app");
+                firehoseLogSettingsProvider = new FirehoseSettingsProvider(configProvider);
+            }
             var firehoseSink = new FirehoseSink(firehoseLogSettingsProvider);
             return firehoseSink;
         }
 
-            public static CompositeSink GetCompositeSink(ILogFormatter logFormatter, ILogSink primarySink, ILogSink secondarySink)
+        public static CompositeSink GetCompositeSink(ILogFormatter logFormatter, ILogSink primarySink, ILogSink secondarySink)
         {
             var compositeSink = new CompositeSink(logFormatter, primarySink, secondarySink);
             return compositeSink;
@@ -178,6 +188,16 @@ namespace Tavisca.Libraries.Logging.Tests.Utilities
             var log = TraceLog.GenerateTraceLog("Test Trace Log");
             log.Category = "Info";
             return log;
+        }
+
+        public static string GetOutputFromUrl(string url)
+        {
+            var output = string.Empty;
+            using (WebClient client = new WebClient())
+            {
+                output = client.DownloadString(url);
+            }
+            return output;
         }
     }
 }

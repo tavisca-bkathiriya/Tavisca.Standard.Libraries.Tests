@@ -24,7 +24,7 @@ namespace Tavisca.Libraries.Logging.Tests.Logging
             IApplicationLogWriter applicationLogWriter = new LogWriter(formatter, redisSink);
             Logger.Initialize(applicationLogWriter);
             Logger.WriteLogAsync(apiLog).GetAwaiter().GetResult();
-            Thread.Sleep(40000);
+            //Thread.Sleep(40000);
 
             var logData = Utility.GetEsLogDataById(id);
             var esLogId = string.Empty;

@@ -17,30 +17,56 @@ namespace Tavisca.Libraries.LockManagement.Tests
         //Calling dispose on read/write lock, should release the lock
 
         [Fact]
-        public async Task Should_be_able_to_acquire_and_release_read_and_write_locks()
+        public async Task Should_be_able_to_acquire_read_and_write_locks_in_async_way()
         {
             ILockProvider lockProvider = new LockProvider();
 
             var globalLockProvider = new GlobalLock(lockProvider);
-            var beforeLockTime = DateTime.Now;
-            var afterLockTime = DateTime.Now;
-            using (var globalLock = await globalLockProvider.EnterReadLock("test"))
-            {
-                afterLockTime = DateTime.Now;
-            }
-            var timeDiff = (afterLockTime - beforeLockTime).TotalMilliseconds;
-            Assert.InRange(timeDiff,0, 20);
 
-            beforeLockTime = DateTime.Now;
-            using (var globalLock = await globalLockProvider.EnterWriteLock("test"))
+            var isReadLockAcquired = false;
+            var isWriteLockAcquired = false;
+            using (await globalLockProvider.EnterReadLock("test"))
             {
-                afterLockTime = DateTime.Now;
+                isReadLockAcquired = true;
             }
-            var timeDiff1 = (afterLockTime - beforeLockTime).TotalMilliseconds;
-            Assert.InRange(timeDiff1, 0, 20);
+            using (await globalLockProvider.EnterWriteLock("test"))
+            {
+                isWriteLockAcquired = true;
+            }
+            Assert.True(isReadLockAcquired);
+            Assert.True(isWriteLockAcquired);
         }
 
-        //If the object acquire write lock, all the read/write operations should wait for its completion.
+        [Fact]
+        public async Task Should_be_able_to_release_read_and_write_locks_in_async_way()
+        {
+            ILockProvider lockProvider = new LockProvider();
+
+            var globalLockProvider = new GlobalLock(lockProvider);
+
+            var isReadLockReleasedByPreviousCode = false;
+            using (await globalLockProvider.EnterReadLock("test"))
+            {
+                Thread.Sleep(100);
+            }
+            using (await globalLockProvider.EnterReadLock("test"))
+            {
+                isReadLockReleasedByPreviousCode = true;
+            }
+
+            var isWriteLockReleasedByPreviousCode = false;
+            using (await globalLockProvider.EnterWriteLock("test"))
+            {
+                Thread.Sleep(100);
+            }
+            using (await globalLockProvider.EnterWriteLock("test"))
+            {
+                isWriteLockReleasedByPreviousCode = true;
+            }
+
+            Assert.True(isReadLockReleasedByPreviousCode);
+            Assert.True(isWriteLockReleasedByPreviousCode);
+        }
 
         [Fact]
         public async Task ReadWriteLocks_Should_Wait_For_Completion_Of_WriteLock()
@@ -97,10 +123,10 @@ namespace Tavisca.Libraries.LockManagement.Tests
             var dateTime3 = dateTimeTask3.Result;
 
             var timeDiff = (dateTime3 - dateTime1).TotalMilliseconds;
-            Assert.InRange(timeDiff, 500, 600);
+            Assert.True(timeDiff > 500);
           
             var timeDiff1 = (dateTime2 - dateTime1).TotalMilliseconds;
-            Assert.InRange(timeDiff1, 500, 600);
+            Assert.True(timeDiff1 > 500);
         }
 
         //If the object acquire read lock, all the read/write operations should wait for its completion.
@@ -160,10 +186,71 @@ namespace Tavisca.Libraries.LockManagement.Tests
             var dateTime3 = dateTimeTask3.Result;
 
             var timeDiff = (dateTime2 - dateTime1).TotalMilliseconds;
-            Assert.InRange(timeDiff, 500, 600);
+            Assert.True(timeDiff > 500);
 
             var timeDiff1 = (dateTime3 - dateTime1).TotalMilliseconds;
-            Assert.InRange(timeDiff1, 500, 600);
+            Assert.True(timeDiff1 > 500);
+        }
+
+
+        [Fact]
+        public async Task ReadWrite_Operations_In_Queue_Should_Be_Executed_Sequentially()
+        {
+            ILockProvider lockProvider = new LockProvider();
+
+            var globalLockProvider = new GlobalLock(lockProvider);
+            Func<Task<DateTime>> readLockBlockingAction = async () =>
+            {
+                DateTime lockAcquiredTime = new DateTime();
+                using (var globalLock = await globalLockProvider.EnterReadLock("test"))
+                {
+                    lockAcquiredTime = DateTime.Now;
+                    Thread.Sleep(500);
+                }
+                return lockAcquiredTime;
+            };
+
+            Func<Task<DateTime>> writeLockAction = async () =>
+            {
+                DateTime lockAcquiredTime = new DateTime();
+                using (var globalLock = await globalLockProvider.EnterWriteLock("test"))
+                {
+                    lockAcquiredTime = DateTime.Now;
+                    Thread.Sleep(500);
+                }
+                return lockAcquiredTime;
+            };
+
+            Func<Task<DateTime>> readLockAction = async () =>
+            {
+                DateTime lockAcquiredTime = new DateTime();
+                using (var globalLock = await globalLockProvider.EnterReadLock("test"))
+                {
+                    lockAcquiredTime = DateTime.Now;
+                    Thread.Sleep(500);
+                }
+                return lockAcquiredTime;
+            };
+
+            Task<DateTime> dateTimeTask1 = null, dateTimeTask2 = null, dateTimeTask3 = null;
+            Parallel.Invoke(
+                () => { dateTimeTask1 = readLockBlockingAction(); },
+                () => {
+                    Thread.Sleep(100);
+                    dateTimeTask2 = writeLockAction();
+                },
+                () => {
+                    Thread.Sleep(100);
+                    dateTimeTask3 = readLockAction();
+                }
+            );
+
+            var dateTime1 = dateTimeTask1.Result;
+            var dateTime2 = dateTimeTask2.Result;
+            var dateTime3 = dateTimeTask3.Result;
+
+            var timeDiff = Math.Abs((dateTime3 - dateTime2).TotalMilliseconds);
+            Assert.True(timeDiff > 500);
         }
 
         //In case any operation is waiting to acquire the lock, it will retry based on configured retry policy
@@ -267,7 +354,7 @@ namespace Tavisca.Libraries.LockManagement.Tests
             {
                 using (var globalLock = await globalLockProvider.EnterReadLock("test"))
                 {
-                    Thread.Sleep(2000);
+                    Thread.Sleep(3000);
                 }
             };
 
