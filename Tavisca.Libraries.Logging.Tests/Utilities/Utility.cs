@@ -170,7 +170,9 @@ namespace Tavisca.Libraries.Logging.Tests.Utilities
             FirehoseSettingsProvider firehoseLogSettingsProvider;
             lock (_lock)
             {
-                var configProvider = new Tavisca.Common.Plugins.Configuration.ConfigurationProvider("test_arn_app");
+                var configurationBuilder = new ConfigurationBuilder();
+                configurationBuilder.WithSensitiveDataProvider(new ParameterStoreProvider());
+                var configProvider = new Tavisca.Common.Plugins.Configuration.ConfigurationProvider("test_arn_app", configurationBuilder);
                 firehoseLogSettingsProvider = new FirehoseSettingsProvider(configProvider);
             }
             var firehoseSink = new FirehoseSink(firehoseLogSettingsProvider);
