@@ -363,6 +363,240 @@ namespace Tavisca.Libraries.Logging.Tests.Filters
             Assert.Equal(expected, actual);
             Assert.Equal(expected1, actual1);
         }
+
+        [Fact]
+        public void Should_be_able_to_apply_filter_using_delegatefilter()
+        {
+            var filter = new TextLogMaskingFilter(new TextMaskingRule() { Field = "txid", Mask = Masks.DefaultMask });
+
+            var delegateFilter = new DelegateFilter(filter.Apply);
+
+            var id = Convert.ToString(Guid.NewGuid());
+            var apiLog = Utility.GetApiLog();
+            apiLog.Id = id;
+            var filteredLog = delegateFilter.Apply(apiLog);
+
+            var formatter = JsonLogFormatter.Instance;
+            var firehoseSink = Utility.GetFirehoseSink();
+            var redisSink = Utility.GetRedisSink();
+            var compositeSink = Utility.GetCompositeSink(formatter, redisSink, firehoseSink);
+
+            var logWriter = new LogWriter(formatter, compositeSink);
+            logWriter.WriteAsync(filteredLog).GetAwaiter().GetResult();
+            //Thread.Sleep(60000);
+
+            var logData = Utility.GetEsLogDataById(id);
+            var esLogId = string.Empty;
+
+            var expected = "1*********3";
+            string actual;
+            logData.TryGetValue("txid", out actual);
+
+            Assert.Equal(expected, actual);
+        }
+
+
+        [Fact]
+        public void Should_be_able_to_apply_filter_using_filterstateconfiguration()
+        {
+            var loggingFilter = new LoggingFilter(new List<ILogFilter>());
+            FilterStateConfiguration filterStateConfiguration = new FilterStateConfiguration(loggingFilter);
+
+            filterStateConfiguration.MaskField("testfield");
+            filterStateConfiguration.MaskFieldAsCreditCard("CreditCardNo");
+
+            var filters = filterStateConfiguration.Apply();
+
+            var id = Convert.ToString(Guid.NewGuid());
+            var apiLog = Utility.GetApiLog();
+            apiLog.Id = id;
+            apiLog.SetValue("CreditCardNo", "4444555555555555");
+            apiLog.SetValue("testfield", "abcde12345");
+
+            var formatter = JsonLogFormatter.Instance;
+            var firehoseSink = Utility.GetFirehoseSink();
+            var redisSink = Utility.GetRedisSink();
+            var compositeSink = Utility.GetCompositeSink(formatter, redisSink, firehoseSink);
+
+            var logWriter = new LogWriter(formatter, compositeSink, filters.Filters);
+            logWriter.WriteAsync(apiLog).GetAwaiter().GetResult();
+            //Thread.Sleep(60000);
+
+            var logData = Utility.GetEsLogDataById(id);
+            var esLogId = string.Empty;
+
+            var expected = "444455******5555";
+            string actual;
+            logData.TryGetValue("CreditCardNo", out actual);
+
+            var expected1 = "a********5";
+            string actual1;
+            logData.TryGetValue("testfield", out actual1);
+
+            Assert.Equal(expected, actual);
+            Assert.Equal(expected1, actual1);
+        }
+
+        [Fact]
+        public void Should_be_able_to_apply_filter_using_Jsonfilterstateconfiguration()
+        {
+            var loggingFilter = new LoggingFilter(new List<ILogFilter>());
+            FilterStateConfiguration filterStateConfiguration = new FilterStateConfiguration(loggingFilter);
+            var jsonPayloadFilterStateConfiguration = new JsonPayloadFilterStateConfiguration(filterStateConfiguration, "request");
+
+            jsonPayloadFilterStateConfiguration.WithFieldAsCreditCard("paymentMethod.cards[0].num");
+
+            var filters = jsonPayloadFilterStateConfiguration.Builder.Apply();
+
+            var id = Convert.ToString(Guid.NewGuid());
+            var apiLog = Utility.GetApiLog();
+            apiLog.Id = id;
+
+            var formatter = JsonLogFormatter.Instance;
+            var firehoseSink = Utility.GetFirehoseSink();
+            var redisSink = Utility.GetRedisSink();
+            var compositeSink = Utility.GetCompositeSink(formatter, redisSink, firehoseSink);
+
+            var logWriter = new LogWriter(formatter, compositeSink, filters.Filters);
+            logWriter.WriteAsync(apiLog).GetAwaiter().GetResult();
+            //Thread.Sleep(60000);
+
+            var logData = Utility.GetEsLogDataById(id);
+            var esLogId = string.Empty;
+
+            var expectedSubstring = "444455******5555";
+            string actualUrl;
+            logData.TryGetValue("request", out actualUrl);
+            var actual = Utility.GetOutputFromUrl(actualUrl);
+
+            Assert.Contains(expectedSubstring, actual);
+        }
+
+        [Fact]
+        public void Should_be_able_to_apply_filter_using_Querystringfilterstateconfiguration()
+        {
+            var loggingFilter = new LoggingFilter(new List<ILogFilter>());
+            FilterStateConfiguration filterStateConfiguration = new FilterStateConfiguration(loggingFilter);
+            var queryStringFilterStateConfiguration = new QueryStringFilterStateConfiguration(filterStateConfiguration, "url");
+
+            queryStringFilterStateConfiguration.WithField("param1", Masks.MaskCompleteValue);
+            queryStringFilterStateConfiguration.WithField("param2", Masks.MaskCompleteValue);
+
+            var filters = queryStringFilterStateConfiguration.Builder.Apply();
+
+            var id = Convert.ToString(Guid.NewGuid());
+            var apiLog = Utility.GetApiLog();
+            apiLog.Id = id;
+
+            var formatter = JsonLogFormatter.Instance;
+            var firehoseSink = Utility.GetFirehoseSink();
+            var redisSink = Utility.GetRedisSink();
+            var compositeSink = Utility.GetCompositeSink(formatter, redisSink, firehoseSink);
+
+            var logWriter = new LogWriter(formatter, compositeSink, filters.Filters);
+            logWriter.WriteAsync(apiLog).GetAwaiter().GetResult();
+            //Thread.Sleep(60000);
+
+            var logData = Utility.GetEsLogDataById(id);
+            var esLogId = string.Empty;
+
+            var expected = "https://www.google.com?param1=****&param2=****";
+            string actual;
+            logData.TryGetValue("url", out actual);
+
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void Should_be_able_to_apply_filter_using_Xmlpayloadfilterstateconfiguration()
+        {
+            var loggingFilter = new LoggingFilter(new List<ILogFilter>());
+            FilterStateConfiguration filterStateConfiguration = new FilterStateConfiguration(loggingFilter);
+            var xmlPayloadFilterStateConfiguration = new XmlPayloadFilterStateConfiguration(filterStateConfiguration, "xmlField");
+
+            xmlPayloadFilterStateConfiguration.WithFieldAsCreditCard("/root/nodeCC/text()");
+
+            var filters = xmlPayloadFilterStateConfiguration.Builder.Apply();
+
+            var id = Convert.ToString(Guid.NewGuid());
+            var apiLog = Utility.GetApiLog();
+            apiLog.Id = id;
+
+            var cc = "4111111111111111";
+            var maskedCC = "411111******1111";
+            var xml = string.Format(@"<?xml version=""1.0"" encoding=""utf-8""?>
+                        <root>
+                            <node1>
+                                <node1Child1 node1Child1Attr="" attr_value ""> ab </node1Child1>
+                                <node1Child2> abcd </node1Child2>
+                                <node1Child3> abcde </node1Child3>
+                            </node1>
+                            <node2 xmlns=""http://oski.io/my_custom_ns"">uvwxyz</node2>
+                            <nodeCC>{0}</nodeCC>
+                            <node3>pqrst</node3>
+                        </root>", cc);
+
+            apiLog.TrySetValue("xmlField", new Payload(xml));
+
+            var formatter = JsonLogFormatter.Instance;
+            var firehoseSink = Utility.GetFirehoseSink();
+            var redisSink = Utility.GetRedisSink();
+            var compositeSink = Utility.GetCompositeSink(formatter, redisSink, firehoseSink);
+
+            var logWriter = new LogWriter(formatter, compositeSink, filters.Filters);
+            logWriter.WriteAsync(apiLog).GetAwaiter().GetResult();
+            //Thread.Sleep(60000);
+
+            var logData = Utility.GetEsLogDataById(id);
+            var esLogId = string.Empty;
+
+            string actualUrl;
+            logData.TryGetValue("xmlField", out actualUrl);
+            var actual = Utility.GetOutputFromUrl(actualUrl);
+
+            Assert.Contains(maskedCC, actual);
+        }
+
+
+        [Fact]
+        public void Should_Be_Able_To_Add_Filters_Using_ConfigureMasking()
+        {
+            var loggingFilter = new LoggingFilter(new List<ILogFilter>());
+            var filterStateConfiguration = loggingFilter.ConfigureMasking();
+            filterStateConfiguration.MaskField("testfield");
+            filterStateConfiguration.MaskFieldAsCreditCard("CreditCardNo");
+
+            var filters = filterStateConfiguration.Apply();
+
+            var id = Convert.ToString(Guid.NewGuid());
+            var apiLog = Utility.GetApiLog();
+            apiLog.Id = id;
+            apiLog.SetValue("CreditCardNo", "4444555555555555");
+            apiLog.SetValue("testfield", "abcde12345");
+
+            var formatter = JsonLogFormatter.Instance;
+            var firehoseSink = Utility.GetFirehoseSink();
+            var redisSink = Utility.GetRedisSink();
+            var compositeSink = Utility.GetCompositeSink(formatter, redisSink, firehoseSink);
+
+            var logWriter = new LogWriter(formatter, compositeSink, filters.Filters);
+            logWriter.WriteAsync(apiLog).GetAwaiter().GetResult();
+            //Thread.Sleep(60000);
+
+            var logData = Utility.GetEsLogDataById(id);
+            var esLogId = string.Empty;
+
+            var expected = "444455******5555";
+            string actual;
+            logData.TryGetValue("CreditCardNo", out actual);
+
+            var expected1 = "a********5";
+            string actual1;
+            logData.TryGetValue("testfield", out actual1);
+
+            Assert.Equal(expected, actual);
+            Assert.Equal(expected1, actual1);
+        }
     }
 
     public class LoggingFilter : ILoggingHttpFilter
